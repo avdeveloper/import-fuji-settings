@@ -45,7 +45,7 @@ function getMetadataFromFile(path)
         return {
             Path = metadata[1],
             Rating = metadata[2],
-            CameraProfile = metadata[3], -- translate to Adobe's naming convention accordingly
+            CameraProfile = translateToCameraProfile(metadata[3]),
             ShadowTone = metadata[4], -- TODO change shadowtone to whichever name Adobe uses for shadow level and translate to appropriate value
             HighlightTone = metadata[5], -- TODO change key name according to Adobe and translate adjustment level value of highlights accordingly
             -- skip for nowwhiteBalance = metadata[6],
@@ -93,6 +93,15 @@ function split(str, delim)
     end
     table.insert(result, string.sub(str, lastPos))
     return result
+end
+
+-- Translate the name from Fuji convention to Adobe Camera Setting
+-- @param {String} filmMode name of the film simulation
+-- @return {String} matching setting in ACS convention
+function translateToCameraProfile(filmMode)
+    -- TODO check for acros in saturation first
+    -- if not then film mode
+    -- if not then provia
 end
 
 -- Execute
