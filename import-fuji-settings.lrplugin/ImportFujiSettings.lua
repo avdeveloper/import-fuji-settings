@@ -9,23 +9,25 @@ logger:enable 'logfile'
 logger:info 'Importing Fuji settings for selected photos...'
 
 -- Global variables
-local cmdToGetMetadata = _PLUGIN.path .. '/bin/exiftool -csv -Rating -Saturation -FilmMode -ShadowTone -HighlightTone -WhiteBalance -NoiseReduction -Color '
+local cmdToGetMetadata = _PLUGIN.path .. '/bin/exiftool -csv -fast -Rating -Saturation -FilmMode -ShadowTone -HighlightTone -WhiteBalance -NoiseReduction -Color '
 local exiftool = _PLUGIN.path .. '/bin/exiftool '
 
 -- This is the start of the core execution
 function main()
     local catalog = LrApplication.activeCatalog()
+    local numProcessed = 0;
+    local totalPhotos = 0;
 
-    for i, photo in ipairs(catalog.targetPhotos) do
-        LrTasks.startAsyncTask(function ()
+    LrTasks.startAsyncTask(function ()
+        for i, photo in ipairs(catalog.targetPhotos) do
             -- get exif data from RAW File
             local metadataInCSV = getMetadataFromFile(photo.path)
             local cmdToSetMetadata = exiftool .. '-Rating="' .. metadataInCSV['Rating'] .. '" -CameraProfile="' .. metadataInCSV['CameraProfile'] .. '" ' .. photo.path
             logger:debug(cmdToSetMetadata)
             local result = LrTasks.execute(cmdToSetMetadata)
             logger:info('returned with ' .. result)
-        end)
-    end
+        end
+    end)
 end
 
 -- Return the metadata at a given RAW file
