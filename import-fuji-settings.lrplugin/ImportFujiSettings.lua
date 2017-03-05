@@ -1,5 +1,7 @@
 -- Import dependencies
 local LrApplication = import 'LrApplication'
+local LrFunctionContext = import 'LrFunctionContext'
+local LrProgressScope = import 'LrProgressScope'
 local LrTasks = import 'LrTasks'
 
 -- Set up the logger for debugging
@@ -15,18 +17,26 @@ local exiftool = _PLUGIN.path .. '/bin/exiftool '
 -- This is the start of the core execution
 function main()
     local catalog = LrApplication.activeCatalog()
-    local numProcessed = 0;
-    local totalPhotos = 0;
 
-    LrTasks.startAsyncTask(function ()
+    LrFunctionContext.postAsyncTaskWithContext('importFujiSettings', function (context)
+        local numProcessed = 0;
+        local totalPhotos = #catalog.targetPhotos;
+        local progress = LrProgressScope({
+            title = 'Importing Fuji settings for ' .. totalPhotos .. ' photos...',
+            functionContext = context
+        })
+
         for i, photo in ipairs(catalog.targetPhotos) do
             -- get exif data from RAW File
             local metadataInCSV = getMetadataFromFile(photo.path)
             local cmdToSetMetadata = exiftool .. '-Rating="' .. metadataInCSV['Rating'] .. '" -CameraProfile="' .. metadataInCSV['CameraProfile'] .. '" ' .. photo.path
-            logger:debug(cmdToSetMetadata)
+            logger:info(cmdToSetMetadata)
             local result = LrTasks.execute(cmdToSetMetadata)
-            logger:info('returned with ' .. result)
+            numProcessed = numProcessed + 1
+            progress:setPortionComplete(numProcessed, totalPhotos)
         end
+
+        progress:done()
     end)
 end
 
