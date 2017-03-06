@@ -11,7 +11,7 @@ logger:enable 'logfile'
 logger:info 'Importing Fuji settings for selected photos...'
 
 -- Global variables
-local cmdToGetMetadata = _PLUGIN.path .. '/bin/exiftool -csv -fast -Rating -Saturation -FilmMode -ShadowTone -HighlightTone -WhiteBalance -NoiseReduction -Color '
+local cmdToGetMetadata = _PLUGIN.path .. '/bin/exiftool -T -fast -FileName -Rating -Saturation -FilmMode -ShadowTone -HighlightTone -WhiteBalance -NoiseReduction -Color '
 local exiftool = _PLUGIN.path .. '/bin/exiftool '
 
 -- This is the start of the core execution
@@ -34,6 +34,8 @@ function main()
             local result = LrTasks.execute(cmdToSetMetadata)
             numProcessed = numProcessed + 1
             progress:setPortionComplete(numProcessed, totalPhotos)
+
+            if progress:isCanceled() then break end
         end
 
         progress:done()
@@ -47,8 +49,9 @@ function getMetadataFromFile(path)
     local metadata = os.capture(cmdToGetMetadata .. path, true)
 
     if metadata ~= nil then
-        metadata = split(metadata, "\n")[2] -- split csv by lines and ignore the header row
-        metadata = split(metadata, ',') -- split row by comma so we get an array of metadata
+        -- metadata = split(metadata, "\n")[2] -- split csv by lines and ignore the header row
+        metadata = split(metadata, '\t') -- split row by comma so we get an array of metadata
+        logger:debug('metadata: ' .. metadata[1] .. ' and ' .. metadata[2] .. ' and ' .. metadata[3] .. ' and ' .. metadata[4] .. ' and ' .. metadata[5])
 
         return {
             Path = metadata[1],
@@ -101,23 +104,11 @@ end
 -- @param {String} filmMode name of the film simulation
 -- @return {String} matching setting in ACS convention
 function translateToCameraProfile(saturation, filmMode)
+    logger:debug(saturation .. ' and ' .. filmMode)
     local cameraProfile = 'Camera '
 
-    if saturation == 'Normal' then -- it is color
-        if string.find(filmMode, 'Velvia') then
-            cameraProfile = cameraProfile .. 'Velvia/VIVID'
-        elseif string.find(filmMode, 'Astia') then
-            cameraProfile = cameraProfile .. 'ASTIA/SOFT'
-        elseif string.find(filmMode, 'Classic Chrome') then
-            cameraProfile = cameraProfile .. 'CLASSIC CHROME'
-        elseif string.find(filmMode, 'Neg. Hi') then
-            cameraProfile = cameraProfile .. 'Pro Neg. Hi'
-        elseif string.find(filmMode, 'Neg. Std') then
-            cameraProfile = cameraProfile .. 'Prog Neg. Std'
-        else 
-            cameraProfile = cameraProfile .. 'PROVIA/STANDARD'
-        end
-    else -- it is monochrome
+    if string.find(saturation, 'Acros') or string.find(saturation, 'B&W') then
+        logger:debug('it is monochrome')
 
         -- ACROS or MONOCHROME?
         if string.find(saturation, 'Acros') then
@@ -134,8 +125,24 @@ function translateToCameraProfile(saturation, filmMode)
         elseif string.find(saturation, 'Green') then
             cameraProfile = cameraProfile .. '+G FILTER'
         end
+    else -- it is color
+        logger:debug('it is color')
+        if string.find(filmMode, 'Velvia') then
+            cameraProfile = cameraProfile .. 'Velvia/VIVID'
+        elseif string.find(filmMode, 'Astia') then
+            cameraProfile = cameraProfile .. 'ASTIA/SOFT'
+        elseif string.find(filmMode, 'Classic Chrome') then
+            cameraProfile = cameraProfile .. 'CLASSIC CHROME'
+        elseif string.find(filmMode, 'Neg. Hi') then
+            cameraProfile = cameraProfile .. 'Pro Neg. Hi'
+        elseif string.find(filmMode, 'Neg. Std') then
+            cameraProfile = cameraProfile .. 'Pro Neg. Std'
+        else 
+            cameraProfile = cameraProfile .. 'PROVIA/STANDARD'
+        end
     end
 
+    logger:debug('result is ' .. cameraProfile)
     return cameraProfile
 end
 
