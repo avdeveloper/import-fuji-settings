@@ -4,12 +4,12 @@ A LightRoom plugin that reads the in-camera settings from the photos you shot wi
 ## Supported in-camera settings
  - [x] Rating
  - [x] Film Simulation
+ - [ ] Noise Reduction
+ - [ ] Sharpness
  - [ ] Highlight Tone
  - [ ] Shadow Tone
  - [ ] White Balance
  - [ ] White Balance Shift
- - [ ] Noise Reduction
- - [ ] Sharpness
  
 ## Installation
 
