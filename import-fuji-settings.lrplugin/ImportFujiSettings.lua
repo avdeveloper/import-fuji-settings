@@ -29,7 +29,7 @@ function main()
         for i, photo in ipairs(catalog.targetPhotos) do
             -- get exif data from RAW File
             local metadataInCSV = getMetadataFromFile(photo.path)
-            local cmdToSetMetadata = exiftool .. '-Rating="' .. metadataInCSV['Rating'] .. '" -CameraProfile="' .. metadataInCSV['CameraProfile'] .. '" ' .. photo.path
+            local cmdToSetMetadata = exiftool .. '-Rating="' .. metadataInCSV['Rating'] .. '" -CameraProfile="' .. metadataInCSV['CameraProfile'] .. '" ' .. string.gsub(photo.path, 'RAF', 'xmp')
             logger:info(cmdToSetMetadata)
             local result = LrTasks.execute(cmdToSetMetadata)
             numProcessed = numProcessed + 1
