@@ -19,6 +19,7 @@ A LightRoom plugin that reads the in-camera settings from the photos you shot wi
 
 ## Usage
 *When importing RAF files, do not set Build Previews to "Minimal"*
+
 1. After importing your photos and in the Library module, select the photos you want to sync.
 2. At the menu bar on top, run the script by going to `Library` > `Plug-in Extras` > `Import Fuji Settings`
 3. Once the script has finished running and while the photos are still selected, Update the photos by going to `Metadata` > `Read Metadata from File`
